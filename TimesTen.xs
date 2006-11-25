@@ -133,7 +133,7 @@ _GetPrimaryKeys(dbh, sth, CatalogName, SchemaName, TableName)
 	char *	SchemaName
 	char *	TableName
 	CODE:
-	ST(0) = timesten_st_primary_keys(dbh, sth, CatalogName, SchemaName, TableName) ? &sv_yes : &sv_no;
+	ST(0) = dbd_st_primary_keys(dbh, sth, CatalogName, SchemaName, TableName) ? &sv_yes : &sv_no;
 
 void 
 _GetSpecialColumns(dbh, sth, Identifier, CatalogName, SchemaName, TableName, Scope, Nullable)
@@ -169,7 +169,6 @@ GetFunctions(dbh, func)
 	UWORD pfExists[100];
 	RETCODE rc;
 	int i;
-	int j;
 	D_imp_dbh(dbh);
 	rc = SQLGetFunctions(imp_dbh->hdbc, func, pfExists);
 	if (SQL_ok(rc)) {
@@ -187,66 +186,3 @@ GetFunctions(dbh, func)
 MODULE = DBD::TimesTen    PACKAGE = DBD::TimesTen::db
 
 MODULE = DBD::TimesTen    PACKAGE = DBD::TimesTen::dr
-
-void
-data_sources(drh, attr = NULL)
-	SV* drh;
-    SV* attr;
-  PROTOTYPE: $;$
-  PPCODE:
-    {
-//#ifdef DBD_ODBC_NO_DATASOURCES
-#if 1
-		/*	D_imp_drh(drh);
-			imp_drh->henv = SQL_NULL_HENV;
-			dbd_error(drh, (RETCODE) SQL_ERROR, "data_sources: SOLID doesn't implement SQLDataSources()");*/
-		XSRETURN(0);
-#else
-	int numDataSources = 0;
-	UWORD fDirection = SQL_FETCH_FIRST;
-	RETCODE rc;
-        UCHAR dsn[SQL_MAX_DSN_LENGTH+1+13 /* strlen("DBI:TimesTen:") */];
-        SWORD dsn_length;
-        UCHAR description[256];
-        SWORD description_length;
-	D_imp_drh(drh);
-
-	if (!imp_drh->connects) {
-	    rc = SQLAllocEnv(&imp_drh->henv);
-	    if (!SQL_ok(rc)) {
-		imp_drh->henv = SQL_NULL_HENV;
-		dbd_error(drh, rc, "data_sources/SQLAllocEnv");
-		XSRETURN(0);
-	    }
-	}
-	strcpy(dsn, "DBI:TimesTen:");
-	while (1) {
-            rc = SQLDataSources(imp_drh->henv, fDirection,
-                                dsn+13, /* strlen("DBI:TimesTen:") */
-                                SQL_MAX_DSN_LENGTH, 
-								&dsn_length,
-                                description, sizeof(description),
-                                &description_length);
-       	    if (!SQL_ok(rc)) {
-                if (rc != SQL_NO_DATA_FOUND) {
-		    /*
-		     *  Temporarily increment imp_drh->connects, so
-		     *  that dbd_error uses our henv.
-		     */
-		    imp_drh->connects++;
-		    dbd_error(drh, rc, "data_sources/SQLDataSources");
-		    imp_drh->connects--;
-                }
-                break;
-            }
-            ST(numDataSources++) = newSVpv(dsn, dsn_length+13 /* strlen("dbi:TimesTen:") */ );
-	    fDirection = SQL_FETCH_NEXT;
-	}
-	if (!imp_drh->connects) {
-	    SQLFreeEnv(imp_drh->henv);
-	    imp_drh->henv = SQL_NULL_HENV;
-	}
-	XSRETURN(numDataSources);
-#endif /* no data sources */
-    }
-

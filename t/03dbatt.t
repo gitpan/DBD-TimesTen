@@ -1,5 +1,5 @@
 #!perl -w -I./t
-# $Id: 03dbatt.t 508 2006-11-22 17:06:19Z wagnerch $
+# $Id: 03dbatt.t 522 2006-11-23 02:54:41Z wagnerch $
 
 use Test::More;
 
@@ -113,7 +113,6 @@ $dbh->disconnect;
 exit 0;
 # avoid annoying warning
 print $DBI::errstr;
-# print STDERR $dbh->{odbc_SQL_DRIVER_ODBC_VER}, "\n";
 
 # ------------------------------------------------------------
 # returns true when a row remains inserted after a rollback.

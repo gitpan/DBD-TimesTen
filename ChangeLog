@@ -1,0 +1,80 @@
+2006-11-25 [r524]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Release of version 0.03
+
+2006-11-25 [r523]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Removed the asynchronous code, will add it back in later if there
+	  is significant demand for it. I don't imagine most people would
+	  need asynchronous for a purely in-memory database, I could be
+	  wrong :).
+	* Renamed QueryTimeout parameter to ttQueryTimeout. Decided that
+	  non-standard DBI/DBD items would be prefixed with tt.
+	* Renamed odbc_exec_direct parameter to ttExecDirect.
+	* Removed odbc_force_rebind parameter.
+	* Removed code to check for SQLDescribeParam function, it is
+	  supported atleast with TimesTen 6.0 clients. We can add it back
+	  in later, if necessary.
+
+2006-11-23 [r522]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Removed odbc_sql_driver_odbc_ver attribute.
+
+2006-11-23 [r521]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Added missing prototypes.
+	* Removed odbc_version attribute.
+	* Removed unnecessary get_primary_keys call, redundant.
+	* Removed unused dbd_caution function.
+	* Removed unused dbtype_is_string function.
+
+2006-11-22 [r520]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Clean up docs.
+
+2006-11-22 [r519]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Removed unused variables, clean up.
+	* Removed odbc_more_results feature, not supported.
+	* Removed odbc_cursor_type feature.
+	* Removed 09multi test suite
+
+2006-11-22 [r518]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Removed Changes POD.
+	* Added svnlog target, automatically creates ChangeLog from SVN.
+
+2006-11-22 [r516-517]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Bumped version, not yet released.
+
+	* Fixed the query timeout, TimesTen uses ODBC 2.x style for this
+	  option.
+	* Renamed odbc_query_timeout attribute to QueryTimeout during
+	  connect phase.
+	* Renamed some internal functions.
+
+2006-11-22 [r515]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Removed some dead & commented code.
+
+2006-11-22 [r513]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Fixed potential namespace issues.
+
+2006-11-22 [r511]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Updated docs
+
+2006-11-22 [r508-510]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Changed properties.
+
+	* Changed properties
+
+	* Initial import of DBD::TimesTen
+
+2006-11-22 [r507]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Created repository structure for DBD::TimesTen
+

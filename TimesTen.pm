@@ -1,4 +1,4 @@
-# $Id: TimesTen.pm 513 2006-11-22 17:59:10Z wagnerch $
+# $Id: TimesTen.pm 523 2006-11-25 16:56:20Z wagnerch $
 #
 # Copyright (c) 1994,1995,1996,1998  Tim Bunce
 # portions Copyright (c) 1997-2004  Jeff Urlwin
@@ -10,7 +10,7 @@
 
 require 5.004;
 
-$DBD::TimesTen::VERSION = '0.02';
+$DBD::TimesTen::VERSION = '0.03';
 
 {
     package DBD::TimesTen;
@@ -387,27 +387,7 @@ See L<DBI> for more information.
  Please note that some tests may fail or report they are
  unsupported on this platform.
    
- Also note that some tests may be skipped, such as
- t/09multi.t, if your driver doesn't seem to support
- returning multiple result sets.  This is normal.
-
 =item B<Private DBD::TimesTen Attributes>
-
-=item odbc_more_results (applies to statement handle only!)
-
-Use this attribute to determine if there are more result sets
-available.  SQL Server supports this feature.  Use this as follows:
-
-do {
-   my @row;
-   while (@row = $sth->fetchrow_array()) {
-      # do stuff here
-   }
-} while ($sth->{odbc_more_results});
-
-Note that with multiple result sets and output parameters (i.e. using
-bind_param_inout, don't expect output parameters to be bound until ALL
-result sets have been retrieved.
 
 =item odbc_ignore_named_placeholders
 
@@ -428,37 +408,18 @@ DBD::TimesTen will attempt to query the driver via SQLDescribeParam to determine
 the correct type.  If the driver doesn't support SQLDescribeParam, then DBD::TimesTen
 falls back to using SQL_VARCHAR as the default, unless overridden by bind_param()
 
-=item odbc_force_rebind
-
-This is to handle special cases, especially when using multiple result sets.
-Set this before execute to "force" DBD::TimesTen to re-obtain the result set's
-number of columns and column types for each execute.  Especially useful for
-calling stored procedures which may return different result sets each
-execute.  The only performance penalty is during execute(), but I didn't
-want to incur that penalty for all circumstances.  It is probably fairly
-rare that this occurs.  This attribute will be automatically set when
-multiple result sets are triggered.  Most people shouldn't have to worry
-about this.
-
-=item odbc_async_exec
-
-Allow asynchronous execution of queries.  Right now, this causes a spin-loop
-(with a small "sleep") until the sql is complete.  This is useful, however,
-if you want the error handling and asynchronous messages (see the err_handler)
-below.
-
-=item odbc_exec_direct
+=item ttExecDirect
 
 Force DBD::TimesTen to use SQLExecDirect instead of SQLPrepare() then SQLExecute.
 There are drivers that only support SQLExecDirect and the DBD::TimesTen
 do() override doesn't allow returning result sets.  Therefore, the
-way to do this now is to set the attributed odbc_exec_direct.
+way to do this now is to set the attributed ttExecDirect.
 There are currently two ways to get this:
-	$dbh->prepare($sql, { odbc_exec_direct => 1}); 
+	$dbh->prepare($sql, { ttExecDirect => 1}); 
  and
-	$dbh->{odbc_exec_direct} = 1;
+	$dbh->{ttExecDirect} = 1;
  When $dbh->prepare() is called with the attribute "ExecDirect" set to a non-zero value 
- dbd_st_prepare do NOT call SQLPrepare, but set the sth flag odbc_exec_direct to 1.
+ dbd_st_prepare do NOT call SQLPrepare, but set the sth flag ttExecDirect to 1.
  
 =item odbc_err_handler
 
@@ -499,43 +460,11 @@ SQL_ROWSET_SIZE attribute patch from Andrew Brown
 > Andrew
 >
 
-=item SQL_DRIVER_ODBC_VER
-
-This, while available via get_info() is captured here.  I may get rid of this
-as I only used it for debugging purposes.  
- 
-=item odbc_cursortype (applies to connect only!)
-
-This allows multiple concurrent statements on SQL*Server.  In your connect, add
-{ odbc_cursortype => 2 }.  If you are using DBI > 1.41, you should also be able
-to use { odbc_cursortype => DBI::SQL_CURSOR_DYNAMIC } instead.  For example:
-
- my $dbh = DBI->connect("dbi:TimesTen:$DSN", $user, $pass, { RaiseError => 1, odbc_cursortype => 2});
- my $sth = $dbh->prepare("one statement");
- my $sth2 = $dbh->prepare("two statement");
- $sth->execute;
- my @row;
- while (@row = $sth->fetchrow_array) {
-    $sth2->execute($row[0]);
- }
-
-
-
-=item odbc_query_timeout 
+=item ttQueryTimeout
 
 This allows the end user to set a timeout for queries on the ODBC side.  After your connect, add
-{ odbc_query_timeout => 30 } or set on the dbh before executing the statement.  The default is 0, no timeout.
-Note that some drivers may not support this attribute.
+{ ttQueryTimeout => 30 } or set on the dbh before executing the statement.  The default is 0, no timeout.
 
-   
-=item odbc_version (applies to connect only!)
-
-This was added prior to the move to ODBC 3.x to allow the caller to "force" ODBC 3.0
-compatibility.  It's probably not as useful now, but it allowed get_info and get_type_info
-to return correct/updated information that ODBC 2.x didn't permit/provide.
-Since DBD::TimesTen is now 3.x, this can be used to force 2.x behavior via something like:
-  my $dbh = DBI->connect("dbi:TimesTen:$DSN", $user, $pass, { odbc_version => 2});
-       
    
 =item B<Private DBD::TimesTen Functions>
 
@@ -607,10 +536,6 @@ See DBI's get_foreign_keys.
 
 See DBI's get_primary_keys
    
-=item SQLDataSources
-
-Handled, currently (as of 0.21), also see DBI's data_sources()
-
 =item SQLSpecialColumns
 
 Handled as of version 0.28
@@ -651,8 +576,6 @@ Example:
 =item Almost all of my tests for DBD::TimesTen fail.  They complain about not being able to connect
 or the DSN is not found.  
 
-Please, please test your configuration of ODBC and driver before trying to test DBD::TimesTen.  Most
-of the time, this stems from the fact that the DSN (or ODBC) is not configured properly.  iODBC
-comes with a odbctest program.  Please use it to verify connectivity.
+Verify that you set DBI_DSN, DBI_USER, and DBI_PASS.
 
 =cut

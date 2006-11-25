@@ -1,5 +1,5 @@
 /*
- * $Id: dbdimp.h 513 2006-11-22 17:59:10Z wagnerch $
+ * $Id: dbdimp.h 523 2006-11-25 16:56:20Z wagnerch $
  * Copyright (c) 1997-2001 Jeff Urlwin
  * portions Copyright (c) 1997  Thomas K. Wenrich
  * portions Copyright (c) 1994,1995,1996  Tim Bunce
@@ -30,22 +30,13 @@ struct imp_dbh_st {
     dbih_dbc_t com;		/* MUST be first element in structure	*/
     HENV henv;			/* copy from imp_drh for speed		*/
     HDBC hdbc;
-    char odbc_ver[20];  /* ODBC compat. version for driver */
     char odbc_dbname[64];
     int  odbc_ignore_named_placeholders;	/* flag to ignore named parameters */
     int  odbc_default_bind_type;	/* flag to set default binding type (experimental) */
-    int  odbc_sqldescribeparam_supported; /* flag to see if SQLDescribeParam is supported */
-    int  odbc_sqlmoreresults_supported; /* flag to see if SQLMoreResults is supported */
     int	 odbc_defer_binding; /* flag to work around SQLServer bug and defer binding until */
 			    /* last possible moment */
-    int  odbc_force_rebind; /* force rebinding the output columns after each execute to
-       resolve some issues where certain stored procs can return
-       multiple result sets */
-    int  odbc_query_timeout;
-    int  odbc_async_exec; /* flag to set asynchronous execution */
-    int  odbc_exec_direct;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
-    SQLUINTEGER odbc_async_type; /* flag to store the type of asynchronous
-                                  * execution the driver supports */
+    int  ttQueryTimeout;
+    int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
     SV *odbc_err_handler; /* contains the error handler coderef */
     int  RowCacheSize;			/* default row cache size in rows for statements */
 };
@@ -58,7 +49,6 @@ struct imp_sth_st {
     HDBC       hdbc;		/* copy for speed	*/
     HSTMT      hstmt;
 
-    int        moreResults;	/* are there more results to fetch?	*/
     int        done_desc;	/* have we described this sth yet ?	*/
 
     /* Input Details	*/
@@ -86,11 +76,8 @@ struct imp_sth_st {
     UWORD *row_status;			/* row indicators for array binding */
     int  odbc_ignore_named_placeholders;	/* flag to ignore named parameters */
     int  odbc_default_bind_type;	/* flag to set default binding type (experimental) */
-    int  odbc_exec_direct;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
-    int  odbc_force_rebind; /* force rebinding the output columns after each execute to
-       /* resolve some issues where certain stored procs can return
-       /* multiple result sets */
-    int odbc_query_timeout;
+    int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
+    int ttQueryTimeout;
 };
 #define IMP_STH_EXECUTING	0x0001
 

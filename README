@@ -1,6 +1,6 @@
 DBD::TimesTen -- DBD module interfacing the TimesTen databases.
 
-   $Id: README 511 2006-11-22 17:25:49Z wagnerch $
+   $Id: README 518 2006-11-22 22:51:21Z wagnerch $
 
    Copyright (c) 1994,1995,1996,1997,1998  Tim Bunce
    portions Copyright (c) 1997,1998,1999,2000,2001,2002 Jeff Urlwin
@@ -43,8 +43,7 @@ INTRODUCTION:
 
     Remember to *read* the DBI README file!
 
-    Remember to *read* the DBD::TimesTen.pm POD documentation and
-    the DBD::TimesTen::Changes.pm POD documentation!!!
+    Remember to *read* the DBD::TimesTen.pm POD documentation!
 
 
 BUILDING:
@@ -101,6 +100,5 @@ DBI 'home page': http://dbi.perl.org
 
 perldoc DBI
 perldoc DBD::TimesTen
-perldoc DBD::TimesTen::Changes
 
 End.

@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: Makefile.PL 508 2006-11-22 17:06:19Z wagnerch $
+# $Id: Makefile.PL 523 2006-11-25 16:56:20Z wagnerch $
 #
 # You may distribute under the terms of either the GNU General Public
 # License or the Artistic License, as specified in the Perl README file.
@@ -22,11 +22,12 @@ my %opts = (
    PREREQ_PM => { "Test::Simple" => 0.40 }, # actually Test::More pkg in T::S dist
    clean => { FILES=> 'TimesTen.xsi' },
    dist => {
-      DIST_DEFAULT=> 'clean distcheck tardist',
+      DIST_DEFAULT=> 'clean svnlog distcheck tardist',
       PREOP    => '$(MAKE) -f Makefile.old distdir',
       COMPRESS => 'gzip -v9', SUFFIX => 'gz'
    },
    OBJECT => '$(O_FILES)',
+   DEFINE => '',
 );
 
 if ($ExtUtils::MakeMaker::VERSION >= 5.43) {
@@ -45,6 +46,12 @@ Getopt::Long::GetOptions (
 
 print "Overriding TimesTen Directory with command line option: $opt_o\n"
    if $opt_o;
+
+if (-d ".svn")
+{
+   $opts{DEFINE} .= ' -Wall';
+   $opt_g = 1;
+}
 
 if ($opt_g)
 {
@@ -79,13 +86,10 @@ die "TT_HOME environment variable ($timesten_home) does not refer to a directory
    unless -d $timesten_home;
 
 warn "Using TimesTen in $timesten_home\n";
-my $dlext = $Config{dlext};
 
 $opts{INC} = "-I. -I$dbi_arch_dir -I$timesten_home/include";
 $opts{LIBS} = "-L$timesten_home/lib -lttclient";
 $opts{LDDLFLAGS} = $Config{lddlflags} . " -Wl,-rpath,$timesten_home/lib";
-#warn "Warning: LD_LIBRARY_PATH doesn't include $timesten_home\n"
-#   unless $ENV{LD_LIBRARY_PATH} =~ /\Q$timesten_home\/lib/;
 
 print "\n";
 my $rv = WriteMakefile(%opts);
@@ -121,22 +125,11 @@ $rv;
       return main::dbd_postamble(@_);
    }
 
-   sub post_constants
+   sub dist_basics
    {
-      my ($self) = shift;
-
-      return '
-# make Changes file available as installed pod docs "perldoc DBI::Changes"
-inst_libdbdtimesten = ' . File::Spec->catdir($self->{INST_LIB}, 'DBD/TimesTen') . '
-changes_pm = ' . File::Spec->catfile($self->{INST_LIB}, 'DBD/TimesTen', 'Changes.pm') . '
-
-config :: $(changes_pm)
-	@$(NOOP)
-
-$(changes_pm): Changes
-	$(NOECHO) $(MKPATH) $(inst_libdbdtimesten)
-	$(NOECHO) $(RM_F) $(changes_pm)
-	$(CP) Changes $(changes_pm)
+      return shift->SUPER::dist_basics(@_) . '
+svnlog :
+	svn2log
 ';
    }
 }
