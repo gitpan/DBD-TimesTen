@@ -4,72 +4,144 @@ DBISTATE_DECLARE;
 
 MODULE = DBD::TimesTen    PACKAGE = DBD::TimesTen
 
+I32
+constant(name=Nullch)
+   char *name
+   ALIAS:
+   SQL_TXN_READ_COMMITTED = SQL_TXN_READ_COMMITTED
+   SQL_TXN_SERIALIZABLE = SQL_TXN_SERIALIZABLE
+   SQL_INFO_FIRST = SQL_INFO_FIRST
+   SQL_ACTIVE_CONNECTIONS = SQL_ACTIVE_CONNECTIONS
+   SQL_ACTIVE_STATEMENTS = SQL_ACTIVE_STATEMENTS
+   SQL_DATA_SOURCE_NAME = SQL_DATA_SOURCE_NAME
+   SQL_DRIVER_HDBC = SQL_DRIVER_HDBC
+   SQL_DRIVER_HENV = SQL_DRIVER_HENV
+   SQL_DRIVER_HSTMT = SQL_DRIVER_HSTMT
+   SQL_DRIVER_NAME = SQL_DRIVER_NAME
+   SQL_DRIVER_VER = SQL_DRIVER_VER
+   SQL_FETCH_DIRECTION = SQL_FETCH_DIRECTION
+   SQL_ODBC_API_CONFORMANCE = SQL_ODBC_API_CONFORMANCE
+   SQL_ODBC_VER = SQL_ODBC_VER
+   SQL_ROW_UPDATES = SQL_ROW_UPDATES
+   SQL_ODBC_SAG_CLI_CONFORMANCE = SQL_ODBC_SAG_CLI_CONFORMANCE
+   SQL_SERVER_NAME = SQL_SERVER_NAME
+   SQL_SEARCH_PATTERN_ESCAPE = SQL_SEARCH_PATTERN_ESCAPE
+   SQL_ODBC_SQL_CONFORMANCE = SQL_ODBC_SQL_CONFORMANCE
+   SQL_DBMS_NAME = SQL_DBMS_NAME
+   SQL_DBMS_VER = SQL_DBMS_VER
+   SQL_ACCESSIBLE_TABLES = SQL_ACCESSIBLE_TABLES
+   SQL_ACCESSIBLE_PROCEDURES = SQL_ACCESSIBLE_PROCEDURES
+   SQL_PROCEDURES = SQL_PROCEDURES
+   SQL_CONCAT_NULL_BEHAVIOR = SQL_CONCAT_NULL_BEHAVIOR
+   SQL_CURSOR_COMMIT_BEHAVIOR = SQL_CURSOR_COMMIT_BEHAVIOR
+   SQL_CURSOR_ROLLBACK_BEHAVIOR = SQL_CURSOR_ROLLBACK_BEHAVIOR
+   SQL_DATA_SOURCE_READ_ONLY = SQL_DATA_SOURCE_READ_ONLY
+   SQL_DEFAULT_TXN_ISOLATION = SQL_DEFAULT_TXN_ISOLATION
+   SQL_EXPRESSIONS_IN_ORDERBY = SQL_EXPRESSIONS_IN_ORDERBY
+   SQL_IDENTIFIER_CASE = SQL_IDENTIFIER_CASE
+   SQL_IDENTIFIER_QUOTE_CHAR = SQL_IDENTIFIER_QUOTE_CHAR
+   SQL_MAX_COLUMN_NAME_LEN = SQL_MAX_COLUMN_NAME_LEN
+   SQL_MAX_CURSOR_NAME_LEN = SQL_MAX_CURSOR_NAME_LEN
+   SQL_MAX_OWNER_NAME_LEN = SQL_MAX_OWNER_NAME_LEN
+   SQL_MAX_PROCEDURE_NAME_LEN = SQL_MAX_PROCEDURE_NAME_LEN
+   SQL_MAX_QUALIFIER_NAME_LEN = SQL_MAX_QUALIFIER_NAME_LEN
+   SQL_MAX_TABLE_NAME_LEN = SQL_MAX_TABLE_NAME_LEN
+   SQL_MULT_RESULT_SETS = SQL_MULT_RESULT_SETS
+   SQL_MULTIPLE_ACTIVE_TXN = SQL_MULTIPLE_ACTIVE_TXN
+   SQL_OUTER_JOINS = SQL_OUTER_JOINS
+   SQL_OWNER_TERM = SQL_OWNER_TERM
+   SQL_PROCEDURE_TERM = SQL_PROCEDURE_TERM
+   SQL_QUALIFIER_NAME_SEPARATOR = SQL_QUALIFIER_NAME_SEPARATOR
+   SQL_QUALIFIER_TERM = SQL_QUALIFIER_TERM
+   SQL_SCROLL_CONCURRENCY = SQL_SCROLL_CONCURRENCY
+   SQL_SCROLL_OPTIONS = SQL_SCROLL_OPTIONS
+   SQL_TABLE_TERM = SQL_TABLE_TERM
+   SQL_TXN_CAPABLE = SQL_TXN_CAPABLE
+   SQL_USER_NAME = SQL_USER_NAME
+   SQL_CONVERT_FUNCTIONS = SQL_CONVERT_FUNCTIONS
+   SQL_NUMERIC_FUNCTIONS = SQL_NUMERIC_FUNCTIONS
+   SQL_STRING_FUNCTIONS = SQL_STRING_FUNCTIONS
+   SQL_SYSTEM_FUNCTIONS = SQL_SYSTEM_FUNCTIONS
+   SQL_TIMEDATE_FUNCTIONS = SQL_TIMEDATE_FUNCTIONS
+   SQL_CONVERT_BIGINT = SQL_CONVERT_BIGINT
+   SQL_CONVERT_BINARY = SQL_CONVERT_BINARY
+   SQL_CONVERT_BIT = SQL_CONVERT_BIT
+   SQL_CONVERT_CHAR = SQL_CONVERT_CHAR
+   SQL_CONVERT_DATE = SQL_CONVERT_DATE
+   SQL_CONVERT_DECIMAL = SQL_CONVERT_DECIMAL
+   SQL_CONVERT_DOUBLE = SQL_CONVERT_DOUBLE
+   SQL_CONVERT_FLOAT = SQL_CONVERT_FLOAT
+   SQL_CONVERT_INTEGER = SQL_CONVERT_INTEGER
+   SQL_CONVERT_LONGVARCHAR = SQL_CONVERT_LONGVARCHAR
+   SQL_CONVERT_NUMERIC = SQL_CONVERT_NUMERIC
+   SQL_CONVERT_REAL = SQL_CONVERT_REAL
+   SQL_CONVERT_SMALLINT = SQL_CONVERT_SMALLINT
+   SQL_CONVERT_TIME = SQL_CONVERT_TIME
+   SQL_CONVERT_TIMESTAMP = SQL_CONVERT_TIMESTAMP
+   SQL_CONVERT_TINYINT = SQL_CONVERT_TINYINT
+   SQL_CONVERT_VARBINARY = SQL_CONVERT_VARBINARY
+   SQL_CONVERT_VARCHAR = SQL_CONVERT_VARCHAR
+   SQL_CONVERT_LONGVARBINARY = SQL_CONVERT_LONGVARBINARY
+   SQL_TXN_ISOLATION_OPTION = SQL_TXN_ISOLATION_OPTION
+   SQL_ODBC_SQL_OPT_IEF = SQL_ODBC_SQL_OPT_IEF
+   SQL_CORRELATION_NAME = SQL_CORRELATION_NAME
+   SQL_NON_NULLABLE_COLUMNS = SQL_NON_NULLABLE_COLUMNS
+   SQL_DRIVER_HLIB = SQL_DRIVER_HLIB
+   SQL_DRIVER_ODBC_VER = SQL_DRIVER_ODBC_VER
+   SQL_LOCK_TYPES = SQL_LOCK_TYPES
+   SQL_POS_OPERATIONS = SQL_POS_OPERATIONS
+   SQL_POSITIONED_STATEMENTS = SQL_POSITIONED_STATEMENTS
+   SQL_GETDATA_EXTENSIONS = SQL_GETDATA_EXTENSIONS
+   SQL_BOOKMARK_PERSISTENCE = SQL_BOOKMARK_PERSISTENCE
+   SQL_STATIC_SENSITIVITY = SQL_STATIC_SENSITIVITY
+   SQL_FILE_USAGE = SQL_FILE_USAGE
+   SQL_NULL_COLLATION = SQL_NULL_COLLATION
+   SQL_ALTER_TABLE = SQL_ALTER_TABLE
+   SQL_COLUMN_ALIAS = SQL_COLUMN_ALIAS
+   SQL_GROUP_BY = SQL_GROUP_BY
+   SQL_KEYWORDS = SQL_KEYWORDS
+   SQL_ORDER_BY_COLUMNS_IN_SELECT = SQL_ORDER_BY_COLUMNS_IN_SELECT
+   SQL_OWNER_USAGE = SQL_OWNER_USAGE
+   SQL_QUALIFIER_USAGE = SQL_QUALIFIER_USAGE
+   SQL_QUOTED_IDENTIFIER_CASE = SQL_QUOTED_IDENTIFIER_CASE
+   SQL_SPECIAL_CHARACTERS = SQL_SPECIAL_CHARACTERS
+   SQL_SUBQUERIES = SQL_SUBQUERIES
+   SQL_UNION = SQL_UNION
+   SQL_MAX_COLUMNS_IN_GROUP_BY = SQL_MAX_COLUMNS_IN_GROUP_BY
+   SQL_MAX_COLUMNS_IN_INDEX = SQL_MAX_COLUMNS_IN_INDEX
+   SQL_MAX_COLUMNS_IN_ORDER_BY = SQL_MAX_COLUMNS_IN_ORDER_BY
+   SQL_MAX_COLUMNS_IN_SELECT = SQL_MAX_COLUMNS_IN_SELECT
+   SQL_MAX_COLUMNS_IN_TABLE = SQL_MAX_COLUMNS_IN_TABLE
+   SQL_MAX_INDEX_SIZE = SQL_MAX_INDEX_SIZE
+   SQL_MAX_ROW_SIZE_INCLUDES_LONG = SQL_MAX_ROW_SIZE_INCLUDES_LONG
+   SQL_MAX_ROW_SIZE = SQL_MAX_ROW_SIZE
+   SQL_MAX_STATEMENT_LEN = SQL_MAX_STATEMENT_LEN
+   SQL_MAX_TABLES_IN_SELECT = SQL_MAX_TABLES_IN_SELECT
+   SQL_MAX_USER_NAME_LEN = SQL_MAX_USER_NAME_LEN
+   SQL_MAX_CHAR_LITERAL_LEN = SQL_MAX_CHAR_LITERAL_LEN
+   SQL_TIMEDATE_ADD_INTERVALS = SQL_TIMEDATE_ADD_INTERVALS
+   SQL_TIMEDATE_DIFF_INTERVALS = SQL_TIMEDATE_DIFF_INTERVALS
+   SQL_NEED_LONG_DATA_LEN = SQL_NEED_LONG_DATA_LEN
+   SQL_MAX_BINARY_LITERAL_LEN = SQL_MAX_BINARY_LITERAL_LEN
+   SQL_LIKE_ESCAPE_CLAUSE = SQL_LIKE_ESCAPE_CLAUSE
+   SQL_QUALIFIER_LOCATION = SQL_QUALIFIER_LOCATION
+   SQL_INFO_LAST = SQL_INFO_LAST
+
+   CODE:
+   RETVAL = ix;
+   OUTPUT:
+   RETVAL
+
 INCLUDE: TimesTen.xsi
 
 MODULE = DBD::TimesTen    PACKAGE = DBD::TimesTen::st
 
-void 
-_ColAttributes(sth, colno, ftype)
-	SV *	sth
-	int		colno
-	int		ftype
-	CODE:
-	ST(0) = timesten_col_attributes(sth, colno, ftype);
-
 void
-_Cancel(sth)
+_cancel(sth)
     SV *	sth
 
     CODE:
-	ST(0) = timesten_cancel(sth);		
-
-void
-_tables(dbh, sth, catalog, schema, table, type)
-	SV *	dbh
-	SV *	sth
-	char *	catalog
-	char *	schema
-	char *  table
-	char *	type
-	CODE:
-	/* list all tables and views (0 as last parameter) */
-	ST(0) = dbd_st_tables(dbh, sth, catalog, schema, table, type) ? &sv_yes : &sv_no;
-
-void
-_primary_keys(dbh, sth, catalog, schema, table)
-    SV * 	dbh
-    SV *	sth
-    char *	catalog
-    char *	schema
-    char *	table
-    CODE:
-    ST(0) = dbd_st_primary_keys(dbh, sth, catalog, schema, table) ? &sv_yes : &sv_no;
-
-
-void
-DescribeCol(sth, colno)
-	SV *sth
-	int colno
-
-	PPCODE:
-
-	char ColumnName[SQL_MAX_COLUMN_NAME_LEN];
-	I16 NameLength;
-	I16 DataType;
-	U32 ColumnSize;
-	I16 DecimalDigits;
-	I16 Nullable;
-	int rc;
-
-	rc = timesten_describe_col(sth, colno, ColumnName, sizeof(ColumnName), &NameLength,
-			&DataType, &ColumnSize, &DecimalDigits, &Nullable);
-	if (rc) {
-		XPUSHs(newSVpv(ColumnName, 0));
-		XPUSHs(newSViv(DataType));
-		XPUSHs(newSViv(ColumnSize));
-		XPUSHs(newSViv(DecimalDigits));
-		XPUSHs(newSViv(Nullable));
-	}
+	ST(0) = dbd_st_cancel(sth);		
 
 # ------------------------------------------------------------
 # database level interface
@@ -89,7 +161,7 @@ CODE:
 
 
 void
-_columns(dbh, sth, catalog, schema, table, column)
+_column_info(dbh, sth, catalog, schema, table, column)
 	SV *	dbh
 	SV *	sth
 	char *	catalog
@@ -97,59 +169,47 @@ _columns(dbh, sth, catalog, schema, table, column)
 	char *	table
 	char *	column
 	CODE:
-	ST(0) = timesten_db_columns(dbh, sth, catalog, schema, table, column) ? &sv_yes : &sv_no;
+	ST(0) = dbd_db_column_info(dbh, sth, catalog, schema, table, column) ? &sv_yes : &sv_no;
 
 void 
-_GetInfo(dbh, ftype)
+_get_info(dbh, ftype)
 	SV *	dbh
 	int		ftype
 	CODE:
-	ST(0) = timesten_get_info(dbh, ftype);
+	ST(0) = dbd_db_get_info(dbh, ftype);
 
 void
-_GetTypeInfo(dbh, sth, ftype)
+_type_info(dbh, sth, ftype)
 	SV *	dbh
 	SV *	sth
 	int		ftype
 	CODE:
-	ST(0) = timesten_get_type_info(dbh, sth, ftype) ? &sv_yes : &sv_no;
+	ST(0) = dbd_db_type_info(dbh, sth, ftype) ? &sv_yes : &sv_no;
 
-void 
-_GetStatistics(dbh, sth, CatalogName, SchemaName, TableName, Unique)
+void
+_table_info(dbh, sth, catalog, schema, table, type)
 	SV *	dbh
 	SV *	sth
-	char *	CatalogName
-	char *	SchemaName
-	char *	TableName
-	int		Unique
+	char *	catalog
+	char *	schema
+	char *  table
+	char *	type
 	CODE:
-	ST(0) = timesten_get_statistics(dbh, sth, CatalogName, SchemaName, TableName, Unique) ? &sv_yes : &sv_no;
+	/* list all tables and views (0 as last parameter) */
+	ST(0) = dbd_db_table_info(dbh, sth, catalog, schema, table, type) ? &sv_yes : &sv_no;
+
+void
+_primary_key_info(dbh, sth, catalog, schema, table)
+    SV * 	dbh
+    SV *	sth
+    char *	catalog
+    char *	schema
+    char *	table
+    CODE:
+    ST(0) = dbd_db_primary_key_info(dbh, sth, catalog, schema, table) ? &sv_yes : &sv_no;
 
 void 
-_GetPrimaryKeys(dbh, sth, CatalogName, SchemaName, TableName)
-	SV *	dbh
-	SV *	sth
-	char *	CatalogName
-	char *	SchemaName
-	char *	TableName
-	CODE:
-	ST(0) = dbd_st_primary_keys(dbh, sth, CatalogName, SchemaName, TableName) ? &sv_yes : &sv_no;
-
-void 
-_GetSpecialColumns(dbh, sth, Identifier, CatalogName, SchemaName, TableName, Scope, Nullable)
-	SV *	dbh
-	SV *	sth
-	int     Identifier
-	char *	CatalogName
-	char *	SchemaName
-	char *	TableName
-    int     Scope
-    int     Nullable
-	CODE:
-	ST(0) = timesten_get_special_columns(dbh, sth, Identifier, CatalogName, SchemaName, TableName, Scope, Nullable) ? &sv_yes : &sv_no;
-
-void 
-_GetForeignKeys(dbh, sth, PK_CatalogName, PK_SchemaName, PK_TableName, FK_CatalogName, FK_SchemaName, FK_TableName)
+_foreign_key_info(dbh, sth, PK_CatalogName, PK_SchemaName, PK_TableName, FK_CatalogName, FK_SchemaName, FK_TableName)
 	SV *	dbh
 	SV *	sth
 	char *	PK_CatalogName
@@ -159,29 +219,7 @@ _GetForeignKeys(dbh, sth, PK_CatalogName, PK_SchemaName, PK_TableName, FK_Catalo
 	char *	FK_SchemaName
 	char *	FK_TableName
 	CODE:
-	ST(0) = timesten_get_foreign_keys(dbh, sth, PK_CatalogName, PK_SchemaName, PK_TableName, FK_CatalogName, FK_SchemaName, FK_TableName) ? &sv_yes : &sv_no;
-
-void
-GetFunctions(dbh, func)
-	SV *	dbh
-	unsigned short func
-	PPCODE:
-	UWORD pfExists[100];
-	RETCODE rc;
-	int i;
-	D_imp_dbh(dbh);
-	rc = SQLGetFunctions(imp_dbh->hdbc, func, pfExists);
-	if (SQL_ok(rc)) {
-	   switch (func) {
-	      case SQL_API_ALL_FUNCTIONS:
-			for (i = 0; i < 100; i++) {
-				XPUSHs(pfExists[i] ? &sv_yes : &sv_no);
-			}
-			break;
-	      default:
-		XPUSHs(pfExists[0] ? &sv_yes : &sv_no);
-	   }
-	}
+	ST(0) = dbd_db_foreign_key_info(dbh, sth, PK_CatalogName, PK_SchemaName, PK_TableName, FK_CatalogName, FK_SchemaName, FK_TableName) ? &sv_yes : &sv_no;
 
 MODULE = DBD::TimesTen    PACKAGE = DBD::TimesTen::db
 

@@ -9,11 +9,12 @@ TimesTen.xs
 dbdimp.c
 dbdimp.h
 dbivport.h
+DBD-TimesTen.spec
 t/01base.t
-t/02simple.t
-t/03dbatt.t
-t/05meth.t
-t/07bind.t
-t/08bind2.t
-t/ODBCTEST.pm
+t/10general.t
+t/20date.t
+t/30commit.t
+t/31isolation.t
+t/40meta.t
+t/50unicode.t
 META.yml                                 Module meta-data (added by MakeMaker)

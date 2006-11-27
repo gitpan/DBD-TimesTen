@@ -1,6 +1,6 @@
 DBD::TimesTen -- DBD module interfacing the TimesTen databases.
 
-   $Id: README 518 2006-11-22 22:51:21Z wagnerch $
+   $Id: README 548 2006-11-26 23:51:09Z wagnerch $
 
    Copyright (c) 1994,1995,1996,1997,1998  Tim Bunce
    portions Copyright (c) 1997,1998,1999,2000,2001,2002 Jeff Urlwin
@@ -88,6 +88,12 @@ chad.wagner@gmail.com. But note...
 2. Full details of which software you are using, including:
 
   Perl version (the output of perl -V)
+
+3. A repeatable test case, including:
+
+  Tables
+  Data
+  Perl code
 
 It is important to check that you are using the latest version before
 posting.

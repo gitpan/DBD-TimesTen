@@ -1,4 +1,4 @@
-# $Id: TimesTen.pm 523 2006-11-25 16:56:20Z wagnerch $
+# $Id: TimesTen.pm 544 2006-11-26 15:47:54Z wagnerch $
 #
 # Copyright (c) 1994,1995,1996,1998  Tim Bunce
 # portions Copyright (c) 1997-2004  Jeff Urlwin
@@ -10,7 +10,7 @@
 
 require 5.004;
 
-$DBD::TimesTen::VERSION = '0.03';
+$DBD::TimesTen::VERSION = '0.04';
 
 {
     package DBD::TimesTen;
@@ -20,6 +20,56 @@ $DBD::TimesTen::VERSION = '0.03';
     use Exporter ();
     
     @ISA = qw(Exporter DynaLoader);
+    %EXPORT_TAGS = (
+       sql_isolation_options => [ qw(
+          SQL_TXN_READ_COMMITTED SQL_TXN_SERIALIZABLE
+       ) ],
+       sql_getinfo_options => [ qw(
+          SQL_INFO_FIRST SQL_ACTIVE_CONNECTIONS SQL_ACTIVE_STATEMENTS
+          SQL_DATA_SOURCE_NAME SQL_DRIVER_HDBC SQL_DRIVER_HENV SQL_DRIVER_HSTMT
+          SQL_DRIVER_NAME SQL_DRIVER_VER SQL_FETCH_DIRECTION
+          SQL_ODBC_API_CONFORMANCE SQL_ODBC_VER SQL_ROW_UPDATES
+          SQL_ODBC_SAG_CLI_CONFORMANCE SQL_SERVER_NAME
+          SQL_SEARCH_PATTERN_ESCAPE SQL_ODBC_SQL_CONFORMANCE SQL_DBMS_NAME
+          SQL_DBMS_VER SQL_ACCESSIBLE_TABLES SQL_ACCESSIBLE_PROCEDURES
+          SQL_PROCEDURES SQL_CONCAT_NULL_BEHAVIOR SQL_CURSOR_COMMIT_BEHAVIOR
+          SQL_CURSOR_ROLLBACK_BEHAVIOR SQL_DATA_SOURCE_READ_ONLY
+          SQL_DEFAULT_TXN_ISOLATION SQL_EXPRESSIONS_IN_ORDERBY
+          SQL_IDENTIFIER_CASE SQL_IDENTIFIER_QUOTE_CHAR
+          SQL_MAX_COLUMN_NAME_LEN SQL_MAX_CURSOR_NAME_LEN
+          SQL_MAX_OWNER_NAME_LEN SQL_MAX_PROCEDURE_NAME_LEN
+          SQL_MAX_QUALIFIER_NAME_LEN SQL_MAX_TABLE_NAME_LEN
+          SQL_MULT_RESULT_SETS SQL_MULTIPLE_ACTIVE_TXN SQL_OUTER_JOINS
+          SQL_OWNER_TERM SQL_PROCEDURE_TERM SQL_QUALIFIER_NAME_SEPARATOR
+          SQL_QUALIFIER_TERM SQL_SCROLL_CONCURRENCY SQL_SCROLL_OPTIONS
+          SQL_TABLE_TERM SQL_TXN_CAPABLE SQL_USER_NAME SQL_CONVERT_FUNCTIONS
+          SQL_NUMERIC_FUNCTIONS SQL_STRING_FUNCTIONS SQL_SYSTEM_FUNCTIONS
+          SQL_TIMEDATE_FUNCTIONS SQL_CONVERT_BIGINT SQL_CONVERT_BINARY
+          SQL_CONVERT_BIT SQL_CONVERT_CHAR SQL_CONVERT_DATE SQL_CONVERT_DECIMAL
+          SQL_CONVERT_DOUBLE SQL_CONVERT_FLOAT SQL_CONVERT_INTEGER
+          SQL_CONVERT_LONGVARCHAR SQL_CONVERT_NUMERIC SQL_CONVERT_REAL
+          SQL_CONVERT_SMALLINT SQL_CONVERT_TIME SQL_CONVERT_TIMESTAMP
+          SQL_CONVERT_TINYINT SQL_CONVERT_VARBINARY SQL_CONVERT_VARCHAR
+          SQL_CONVERT_LONGVARBINARY SQL_TXN_ISOLATION_OPTION
+          SQL_ODBC_SQL_OPT_IEF SQL_CORRELATION_NAME SQL_NON_NULLABLE_COLUMNS
+          SQL_DRIVER_HLIB SQL_DRIVER_ODBC_VER SQL_LOCK_TYPES SQL_POS_OPERATIONS
+          SQL_POSITIONED_STATEMENTS SQL_GETDATA_EXTENSIONS
+          SQL_BOOKMARK_PERSISTENCE SQL_STATIC_SENSITIVITY SQL_FILE_USAGE
+          SQL_NULL_COLLATION SQL_ALTER_TABLE SQL_COLUMN_ALIAS SQL_GROUP_BY
+          SQL_KEYWORDS SQL_ORDER_BY_COLUMNS_IN_SELECT SQL_OWNER_USAGE
+          SQL_QUALIFIER_USAGE SQL_QUOTED_IDENTIFIER_CASE SQL_SPECIAL_CHARACTERS
+          SQL_SUBQUERIES SQL_UNION SQL_MAX_COLUMNS_IN_GROUP_BY
+          SQL_MAX_COLUMNS_IN_INDEX SQL_MAX_COLUMNS_IN_ORDER_BY
+          SQL_MAX_COLUMNS_IN_SELECT SQL_MAX_COLUMNS_IN_TABLE SQL_MAX_INDEX_SIZE
+          SQL_MAX_ROW_SIZE_INCLUDES_LONG SQL_MAX_ROW_SIZE SQL_MAX_STATEMENT_LEN
+          SQL_MAX_TABLES_IN_SELECT SQL_MAX_USER_NAME_LEN
+          SQL_MAX_CHAR_LITERAL_LEN SQL_TIMEDATE_ADD_INTERVALS
+          SQL_TIMEDATE_DIFF_INTERVALS SQL_NEED_LONG_DATA_LEN
+          SQL_MAX_BINARY_LITERAL_LEN SQL_LIKE_ESCAPE_CLAUSE
+          SQL_QUALIFIER_LOCATION SQL_INFO_LAST
+       ) ],
+    );
+    Exporter::export_ok_tags(qw(sql_isolation_options sql_getinfo_options));
 
     require_version DBI 1.21;
 
@@ -51,6 +101,14 @@ $DBD::TimesTen::VERSION = '0.03';
     }
 
     sub CLONE { undef $drh }
+
+    sub AUTOLOAD {
+        (my $constname = $AUTOLOAD) =~ s/.*:://;
+        my $val = constant($constname); 
+        *$AUTOLOAD = sub { $val };
+        goto &$AUTOLOAD;
+    }
+
     1;
 }
 
@@ -113,29 +171,12 @@ $DBD::TimesTen::VERSION = '0.03';
 	# create a "blank" statement handle
 	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLColumns" });
 
-	_columns($dbh,$sth, $catalog, $schema, $table, $column)
+	DBD::TimesTen::db::_column_info($dbh,$sth, $catalog, $schema, $table, $column)
 	    or return undef;
 
 	$sth;
     }
     
-    sub columns {
-	my ($dbh, $catalog, $schema, $table, $column) = @_;
-
-	$catalog = "" if (!$catalog);
-	$schema = "" if (!$schema);
-	$table = "" if (!$table);
-	$column = "" if (!$column);
-	# create a "blank" statement handle
-	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLColumns" });
-
-	_columns($dbh,$sth, $catalog, $schema, $table, $column)
-	    or return undef;
-
-	$sth;
-    }
-
-
     sub table_info {
  	my($dbh, $catalog, $schema, $table, $type) = @_;
 
@@ -155,7 +196,7 @@ $DBD::TimesTen::VERSION = '0.03';
 	# create a "blank" statement handle
 	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLTables" });
 
-	DBD::TimesTen::st::_tables($dbh,$sth, $catalog, $schema, $table, $type)
+	DBD::TimesTen::db::_table_info($dbh,$sth, $catalog, $schema, $table, $type)
 	      or return undef;
 	$sth;
     }
@@ -169,7 +210,7 @@ $DBD::TimesTen::VERSION = '0.03';
        $catalog = "" if (!$catalog);
        $schema = "" if (!$schema);
        $table = "" if (!$table);
-       DBD::TimesTen::st::_primary_keys($dbh,$sth, $catalog, $schema, $table )
+       DBD::TimesTen::db::_primary_key_info($dbh, $sth, $catalog, $schema, $table)
 	     or return undef;
        $sth;
     }
@@ -186,7 +227,7 @@ $DBD::TimesTen::VERSION = '0.03';
        $fkcatalog = "" if (!$fkcatalog);
        $fkschema = "" if (!$fkschema);
        $fktable = "" if (!$fktable);
-       _GetForeignKeys($dbh, $sth, $pkcatalog, $pkschema, $pktable, $fkcatalog, $fkschema, $fktable) or return undef;
+       DBD::TimesTen::db::_foreign_key_info($dbh, $sth, $pkcatalog, $pkschema, $pktable, $fkcatalog, $fkschema, $fktable) or return undef;
        $sth;
     }
 
@@ -204,7 +245,7 @@ $DBD::TimesTen::VERSION = '0.03';
 	# create a "blank" statement handle
 	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLTables_PING" });
 
-	DBD::TimesTen::st::_tables($dbh,$sth, $catalog, $schema, $table, $type)
+	DBD::TimesTen::db::_table_info($dbh, $sth, $catalog, $schema, $table, $type)
 	      or return 0;
 	$sth->finish;
 	return 1;
@@ -212,16 +253,9 @@ $DBD::TimesTen::VERSION = '0.03';
     }
 
     # New support for the next DBI which will have a get_info command.
-    # leaving support for ->func(xxx, GetInfo) (above) for a period of time
-    # to support older applications which used this.
     sub get_info {
 	my ($dbh, $item) = @_;
-	# handle SQL_DRIVER_HSTMT, SQL_DRIVER_HLIB and
-	# SQL_DRIVER_HDESC specially
-	if ($item == 5 || $item == 135 || $item == 76) {
-	   return undef;
-	}
-	return _GetInfo($dbh, $item);
+	return DBD::TimesTen::db::_get_info($dbh, $item);
     }
 
     # new override of do method provided by Merijn Broeren
@@ -233,7 +267,7 @@ $DBD::TimesTen::VERSION = '0.03';
         if( -1 == $#params )
         {
           # No parameters, use execute immediate
-          $rows = ExecDirect( $dbh, $statement );
+          $rows = _ExecDirect( $dbh, $statement );
           if( 0 == $rows )
           {
             $rows = "0E0";
@@ -250,89 +284,10 @@ $DBD::TimesTen::VERSION = '0.03';
         return $rows
     }
 
-    #
-    # can also be called as $dbh->func($sql, ExecDirect);
-    # if, for some reason, there are compatibility issues
-    # later with DBI's do.
-    #
-    sub ExecDirect {
-       my ($dbh, $sql) = @_;
-       _ExecDirect($dbh, $sql);
-    }
-
-    # Call the ODBC function SQLGetInfo
-    # Args are:
-    #	$dbh - the database handle
-    #	$item: the requested item.  For example, pass 6 for SQL_DRIVER_NAME
-    # See the ODBC documentation for more information about this call.
-    #
-    sub GetInfo {
-	my ($dbh, $item) = @_;
-	get_info($dbh, $item);
-    }
-
-    # Call the ODBC function SQLStatistics
-    # Args are:
-    # See the ODBC documentation for more information about this call.
-    #
-    sub GetStatistics {
-			my ($dbh, $Catalog, $Schema, $Table, $Unique) = @_;
-			# create a "blank" statement handle
-			my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLStatistics" });
-			_GetStatistics($dbh, $sth, $Catalog, $Schema, $Table, $Unique) or return undef;
-			$sth;
-    }
-
-    # Call the ODBC function SQLForeignKeys
-    # Args are:
-    # See the ODBC documentation for more information about this call.
-    #
-    sub GetForeignKeys {
-			my ($dbh, $PK_Catalog, $PK_Schema, $PK_Table, $FK_Catalog, $FK_Schema, $FK_Table) = @_;
-			# create a "blank" statement handle
-			my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLForeignKeys" });
-			_GetForeignKeys($dbh, $sth, $PK_Catalog, $PK_Schema, $PK_Table, $FK_Catalog, $FK_Schema, $FK_Table) or return undef;
-			$sth;
-    }
-
-    # Call the ODBC function SQLPrimaryKeys
-    # Args are:
-    # See the ODBC documentation for more information about this call.
-    #
-    sub GetPrimaryKeys {
-			my ($dbh, $Catalog, $Schema, $Table) = @_;
-			# create a "blank" statement handle
-			my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLPrimaryKeys" });
-			_GetPrimaryKeys($dbh, $sth, $Catalog, $Schema, $Table) or return undef;
-			$sth;
-    }
-
-    # Call the ODBC function SQLSpecialColumns
-    # Args are:
-    # See the ODBC documentation for more information about this call.
-    #
-    sub GetSpecialColumns {
-	my ($dbh, $Identifier, $Catalog, $Schema, $Table, $Scope, $Nullable) = @_;
-	# create a "blank" statement handle
-	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLSpecialColumns" });
-	_GetSpecialColumns($dbh, $sth, $Identifier, $Catalog, $Schema, $Table, $Scope, $Nullable) or return undef;
-	$sth;
-    }
-	
-    sub GetTypeInfo {
-	my ($dbh, $sqltype) = @_;
-	# create a "blank" statement handle
-	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLGetTypeInfo" });
-	# print "SQL Type is $sqltype\n";
-	_GetTypeInfo($dbh, $sth, $sqltype) or return undef;
-	$sth;
-    }
-
     sub type_info_all {
-	my ($dbh, $sqltype) = @_;
-	$sqltype = DBI::SQL_ALL_TYPES unless defined $sqltype;
+	my ($dbh) = @_;
 	my $sth = DBI::_new_sth($dbh, { 'Statement' => "SQLGetTypeInfo" });
-	_GetTypeInfo($dbh, $sth, $sqltype) or return undef;
+	DBD::TimesTen::db::_type_info($dbh, $sth, DBI::SQL_ALL_TYPES) or return undef;
 	my $info = $sth->fetchall_arrayref;
 	unshift @$info, {
 	    map { ($sth->{NAME}->[$_] => $_) } 0..$sth->{NUM_OF_FIELDS}-1
@@ -346,17 +301,9 @@ $DBD::TimesTen::VERSION = '0.03';
 {   package DBD::TimesTen::st; # ====== STATEMENT ======
     use strict;
 
-    sub ColAttributes {		# maps to SQLColAttributes
-	my ($sth, $colno, $desctype) = @_;
-	# print "before ColAttributes $colno\n";
-	my $tmp = _ColAttributes($sth, $colno, $desctype);
-	# print "After ColAttributes\n";
-	$tmp;
-    }
-
     sub cancel {
 	my $sth = shift;
-	my $tmp = _Cancel($sth);
+	my $tmp = DBD::TimesTen::st::_cancel($sth);
 	$tmp;
     }
 }
@@ -372,7 +319,7 @@ DBD::TimesTen - TimesTen Driver for DBI
 
   use DBI;
 
-  $dbh = DBI->connect('dbi:TimesTen:DSN', 'user', 'password');
+  $dbh = DBI->connect('dbi:TimesTen:DSN=...', 'user', 'password');
 
 See L<DBI> for more information.
 
@@ -389,24 +336,23 @@ See L<DBI> for more information.
    
 =item B<Private DBD::TimesTen Attributes>
 
-=item odbc_ignore_named_placeholders
+=item ttIgnoreNamedPlaceholders
 
-Use this if you have special needs (such as Oracle triggers, etc) where
-:new or :name mean something special and are not just place holder names
-You I<must> then use ? for binding parameters.  Example:
- $dbh->{odbc_ignore_named_placeholders} = 1;
- $dbh->do("create trigger foo as if :new.x <> :old.x then ... etc");
+Use this if you have special needs where :new or :name mean something
+special and are not just placeholder names.  You I<must> then use ? for
+binding parameters.  Example:
 
-Without this, DBD::TimesTen will think :new and :old are placeholders for binding
-and get confused.
+	$dbh->{ttIgnoreNamedPlaceholders} = 1;
+	$dbh->do("create trigger foo as if :new.x <> :old.x then ... etc");
+
+Without this, DBD::TimesTen will think :new and :old are placeholders for
+binding and get confused.
  
-=item odbc_default_bind_type
+=item ttDefaultBindType
 
-This value defaults to 0.  Older versions of DBD::TimesTen assumed that the binding
-type was 12 (SQL_VARCHAR).  Newer versions default to 0, which means that
-DBD::TimesTen will attempt to query the driver via SQLDescribeParam to determine
-the correct type.  If the driver doesn't support SQLDescribeParam, then DBD::TimesTen
-falls back to using SQL_VARCHAR as the default, unless overridden by bind_param()
+This value defaults to 0, which means that DBD::TimesTen will attempt to
+query the driver via SQLDescribeParam to determine the correct type.  This
+parameter is overridden if you supply a data type with the bind_param() call.
 
 =item ttExecDirect
 
@@ -414,167 +360,51 @@ Force DBD::TimesTen to use SQLExecDirect instead of SQLPrepare() then SQLExecute
 There are drivers that only support SQLExecDirect and the DBD::TimesTen
 do() override doesn't allow returning result sets.  Therefore, the
 way to do this now is to set the attributed ttExecDirect.
+
 There are currently two ways to get this:
 	$dbh->prepare($sql, { ttExecDirect => 1}); 
  and
 	$dbh->{ttExecDirect} = 1;
- When $dbh->prepare() is called with the attribute "ExecDirect" set to a non-zero value 
- dbd_st_prepare do NOT call SQLPrepare, but set the sth flag ttExecDirect to 1.
+
+When $dbh->prepare() is called with the attribute "ExecDirect" set to a
+non-zero value dbd_st_prepare do NOT call SQLPrepare, but set the sth flag
+ttExecDirect to 1.
  
-=item odbc_err_handler
-
-Allow errors to be handled by the application.  A call-back function supplied
-by the application to handle or ignore messages.  If the error handler returns
-0, the error is ignored, otherwise the error is passed through the normal
-DBI error handling structure(s).
-
-The callback function takes three parameters: the SQLState, the ErrorMessage and
-the native server error.
- 
-=item odbc_SQL_ROWSET_SIZE
-
-Here is the information from the original patch, however, I've learned
-since from other sources that this could/has caused SQL Server to "lock up".
-Please use at your own risk!
-   
-SQL_ROWSET_SIZE attribute patch from Andrew Brown 
-> There are only 2 additional lines allowing for the setting of
-> SQL_ROWSET_SIZE as db handle option.
->
-> The purpose to my madness is simple. SqlServer (7 anyway) by default
-> supports only one select statement at once (using std ODBC cursors).
-> According to the SqlServer documentation you can alter the default setting
-> of
-> three values to force the use of server cursors - in which case multiple
-> selects are possible.
->
-> The code change allows for:
-> $dbh->{SQL_ROWSET_SIZE} = 2;    # Any value > 1
->
-> For this very purpose.
->
-> The setting of SQL_ROWSET_SIZE only affects the extended fetch command as
-> far as I can work out and thus setting this option shouldn't affect
-> DBD::TimesTen operations directly in any way.
->
-> Andrew
->
-
 =item ttQueryTimeout
 
-This allows the end user to set a timeout for queries on the ODBC side.  After your connect, add
-{ ttQueryTimeout => 30 } or set on the dbh before executing the statement.  The default is 0, no timeout.
+This allows the end user to set a timeout for queries.  You can either set
+this via the attributes parameter during the connect call, or you can directly
+modify the attribute using $dbh->{ttQueryTimeout} = 30 after you have already
+connected.
+
+=item ttIsolationLevel
+
+This allows the end user to set the isolation level.  You may need to
+commit if you are changing isolation levels.  You can either set this via
+the attributes parameter during the connect call, or you can directly
+modify the attribute using $dbh->{ttIsolationLevel} after you have already
+connected.  You must export the symbols using as follows:
+
+	use DBI;
+	use DBD::TimesTen qw(:sql_isolation_options);
+
+	$dbh = DBI->connect('DBI:TimesTen:DSN=...', undef, undef,
+	   { ttIsolationLevel => SQL_TXN_SERIALIZABLE });
+
+The valid isolation levels are:
+
+	SQL_TXN_READ_COMMITTED (default)
+	SQL_TXN_SERIALIZABLE
 
    
-=item B<Private DBD::TimesTen Functions>
-
-=item GetInfo (superceded by get_info(), the DBI standard)
-
-This function maps to the ODBC SQLGetInfo call.  This is a Level 1 ODBC
-function.  An example of this is:
-
-  $value = $dbh->func(6, GetInfo);
-
-This function returns a scalar value, which can be a numeric or string value.  
-This depends upon the argument passed to GetInfo.
-
-
-=item SQLGetTypeInfo (superceded by get_type_info(), the DBI standard)
-
-This function maps to the ODBC SQLGetTypeInfo call.  This is a Level 1
-ODBC function.  An example of this is:
-
-  use DBI qw(:sql_types);
-
-  $sth = $dbh->func(SQL_ALL_TYPES, GetInfo);
-  while (@row = $sth->fetch_row) {
-    ...
-  }
-
-This function returns a DBI statement handle, which represents a result
-set containing type names which are compatible with the requested
-type.  SQL_ALL_TYPES can be used for obtaining all the types the ODBC
-driver supports.  NOTE: It is VERY important that the use DBI includes
-the qw(:sql_types) so that values like SQL_VARCHAR are correctly
-interpreted.  This "imports" the sql type names into the program's name
-space.  A very common mistake is to forget the qw(:sql_types) and
-obtain strange results.
-
-=item GetFunctions
-
-This function maps to the ODBC API SQLGetFunctions.  This is a Level 1
-API call which returns supported driver funtions.  Depending upon how
-this is called, it will either return a 100 element array of true/false
-values or a single true false value.  If it's called with
-SQL_API_ALL_FUNCTIONS (0), it will return the 100 element array.
-Otherwise, pass the number referring to the function.  (See your ODBC
-docs for help with this).
-
-=item SQLColumns 
-
-Support for this function has been added in version 0.17.  It looks to be
-fixed in version 0.20.
-
-Use the DBI statement handle attributes NAME, NULLABLE, TYPE, PRECISION and
-SCALE, unless you have a specific reason.
-
-=item Connect without DSN
-The ability to connect without a full DSN is introduced in version 0.21.
-
-Example (using MS Access):
-	my $DSN = 'driver=Microsoft Access Driver (*.mdb);dbq=\\\\cheese\\g$\\perltest.mdb';
-	my $dbh = DBI->connect("dbi:TimesTen:$DSN", '','') 
-		or die "$DBI::errstr\n";
-
-=item SQLStatistics
-
-=item SQLForeignKeys
-
-See DBI's get_foreign_keys.
-   
-=item SQLPrimaryKeys
-
-See DBI's get_primary_keys
-   
-=item SQLSpecialColumns
-
-Handled as of version 0.28
- 
-=item Others/todo?
-
-Level 1
-
-    SQLTables (use tables()) call
-
-Level 2
-
-    SQLColumnPrivileges
-    SQLProcedureColumns
-    SQLProcedures
-    SQLTablePrivileges
-    SQLDrivers
-    SQLNativeSql
-
-=back
-
 =head2 Frequently Asked Questions
 
 Answers to common DBI and DBD::TimesTen questions:
 
 =over 4
  
-=item How do I read more than N characters from a Memo | BLOB | LONG field?
-
-See LongReadLen in the DBI docs.  
-
-Example:
-	$dbh->{LongReadLen} = 20000;
-	$sth = $dbh->prepare("select long_col from big_table");
-	$sth->execute;
-	etc
-
-=item Almost all of my tests for DBD::TimesTen fail.  They complain about not being able to connect
-or the DSN is not found.  
+=item Almost all of my tests for DBD::TimesTen fail.  They complain about
+not being able to connect or the DSN is not found.  
 
 Verify that you set DBI_DSN, DBI_USER, and DBI_PASS.
 

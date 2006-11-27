@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: Makefile.PL 523 2006-11-25 16:56:20Z wagnerch $
+# $Id: Makefile.PL 526 2006-11-25 17:34:51Z wagnerch $
 #
 # You may distribute under the terms of either the GNU General Public
 # License or the Artistic License, as specified in the Perl README file.
@@ -129,7 +129,7 @@ $rv;
    {
       return shift->SUPER::dist_basics(@_) . '
 svnlog :
-	svn2log
+	svn log -v --xml svn://localhost/repos/dbd-timesten/ |$(SVN2LOG)/svn2log.py -D 0 -s -O -L -H -F -u "$(SVN2LOG)/svn2log.users" -x "dbd-timesten/branches/"
 ';
    }
 }

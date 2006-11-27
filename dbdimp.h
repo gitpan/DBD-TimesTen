@@ -1,5 +1,5 @@
 /*
- * $Id: dbdimp.h 523 2006-11-25 16:56:20Z wagnerch $
+ * $Id: dbdimp.h 544 2006-11-26 15:47:54Z wagnerch $
  * Copyright (c) 1997-2001 Jeff Urlwin
  * portions Copyright (c) 1997  Thomas K. Wenrich
  * portions Copyright (c) 1994,1995,1996  Tim Bunce
@@ -30,14 +30,10 @@ struct imp_dbh_st {
     dbih_dbc_t com;		/* MUST be first element in structure	*/
     HENV henv;			/* copy from imp_drh for speed		*/
     HDBC hdbc;
-    char odbc_dbname[64];
-    int  odbc_ignore_named_placeholders;	/* flag to ignore named parameters */
-    int  odbc_default_bind_type;	/* flag to set default binding type (experimental) */
-    int	 odbc_defer_binding; /* flag to work around SQLServer bug and defer binding until */
-			    /* last possible moment */
+    int  ttIgnoreNamedPlaceholders;	/* flag to ignore named parameters */
+    int  ttDefaultBindType;	/* flag to set default binding type (experimental) */
     int  ttQueryTimeout;
     int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
-    SV *odbc_err_handler; /* contains the error handler coderef */
     int  RowCacheSize;			/* default row cache size in rows for statements */
 };
 
@@ -74,8 +70,8 @@ struct imp_sth_st {
     UDWORD rows_fetched;		/* actual number of rows fetched for array binding */
     UDWORD max_rows;			/* max number of rows per fetch for array binding */
     UWORD *row_status;			/* row indicators for array binding */
-    int  odbc_ignore_named_placeholders;	/* flag to ignore named parameters */
-    int  odbc_default_bind_type;	/* flag to set default binding type (experimental) */
+    int  ttIgnoreNamedPlaceholders;	/* flag to ignore named parameters */
+    int  ttDefaultBindType;	/* flag to set default binding type (experimental) */
     int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
     int ttQueryTimeout;
 };
@@ -137,6 +133,10 @@ struct phs_st {  	/* scalar placeholder EXPERIMENTAL	*/
 /* These defines avoid name clashes for multiple statically linked DBD's        */
 
 #define dbd_init		timesten_init
+#define dbd_bind_ph		timesten_bind_ph
+#define dbd_error		timesten_error
+#define dbd_discon_all		timesten_discon_all
+
 #define dbd_db_login		timesten_db_login
 #define dbd_db_login6		timesten_db_login6
 #define dbd_db_commit		timesten_db_commit
@@ -145,6 +145,14 @@ struct phs_st {  	/* scalar placeholder EXPERIMENTAL	*/
 #define dbd_db_destroy		timesten_db_destroy
 #define dbd_db_STORE_attrib	timesten_db_STORE_attrib
 #define dbd_db_FETCH_attrib	timesten_db_FETCH_attrib
+#define dbd_db_column_info	timesten_db_column_info
+#define dbd_db_table_info	timesten_db_table_info
+#define dbd_db_primary_key_info	timesten_db_primary_key_info
+#define dbd_db_foreign_key_info	timesten_db_foreign_key_info
+#define dbd_db_get_info		timesten_db_get_info
+#define dbd_db_type_info	timesten_db_type_info
+#define dbd_db_execdirect	timesten_db_execdirect
+
 #define dbd_st_prepare		timesten_st_prepare
 #define dbd_st_rows		timesten_st_rows
 #define dbd_st_execute		timesten_st_execute
@@ -154,11 +162,5 @@ struct phs_st {  	/* scalar placeholder EXPERIMENTAL	*/
 #define dbd_st_blob_read	timesten_st_blob_read
 #define dbd_st_STORE_attrib	timesten_st_STORE_attrib
 #define dbd_st_FETCH_attrib	timesten_st_FETCH_attrib
-#define dbd_describe		timesten_describe
-#define dbd_bind_ph		timesten_bind_ph
-#define dbd_error		timesten_error
-#define dbd_discon_all		timesten_discon_all
-#define dbd_st_tables		timesten_st_tables
-#define dbd_st_primary_keys	timesten_st_primary_keys
-#define dbd_db_execdirect	timesten_db_execdirect
+#define dbd_st_cancel		timesten_st_cancel
 /* end */
