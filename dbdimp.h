@@ -1,5 +1,5 @@
 /*
- * $Id: dbdimp.h 544 2006-11-26 15:47:54Z wagnerch $
+ * $Id: dbdimp.h 555 2006-11-30 23:42:45Z wagnerch $
  * Copyright (c) 1997-2001 Jeff Urlwin
  * portions Copyright (c) 1997  Thomas K. Wenrich
  * portions Copyright (c) 1994,1995,1996  Tim Bunce
@@ -17,116 +17,107 @@ typedef struct imp_fbh_st imp_fbh_t;
 
 /* This holds global data of the driver itself.
  */
-struct imp_drh_st {
-    dbih_drc_t com;		/* MUST be first element in structure	*/
-    HENV henv;
-    int connects;		/* connect count */
+struct imp_drh_st
+{
+   dbih_drc_t com; /* MUST be first element in structure */
+   HENV henv;
+   int connects;   /* connect count */
 };
 
 /* Define dbh implementor data structure 
    This holds everything to describe the database connection.
  */
-struct imp_dbh_st {
-    dbih_dbc_t com;		/* MUST be first element in structure	*/
-    HENV henv;			/* copy from imp_drh for speed		*/
-    HDBC hdbc;
-    int  ttIgnoreNamedPlaceholders;	/* flag to ignore named parameters */
-    int  ttDefaultBindType;	/* flag to set default binding type (experimental) */
-    int  ttQueryTimeout;
-    int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
-    int  RowCacheSize;			/* default row cache size in rows for statements */
+struct imp_dbh_st
+{
+   dbih_dbc_t com;                /* MUST be first element in structure */
+   HENV henv;                     /* copy from imp_drh for speed */
+   HDBC hdbc;
+   int ttIgnoreNamedPlaceholders; /* flag to ignore named parameters */
+   int ttDefaultBindType;         /* flag to set default binding type */
+   int ttQueryTimeout;
+   int ttExecDirect;              /* flag for executing SQLExecDirect instead
+                                     of SQLPrepare and SQLExecute.  Magic
+                                     happens at SQLExecute() */
+   int RowCacheSize;              /* default row cache size in rows for
+                                     statements */
 };
 
 /* Define sth implementor data structure */
-struct imp_sth_st {
-    dbih_stc_t com;		/* MUST be first element in structure	*/
+struct imp_sth_st
+{
+   dbih_stc_t com;                /* MUST be first element in structure */
 
-    HENV       henv;		/* copy for speed	*/
-    HDBC       hdbc;		/* copy for speed	*/
-    HSTMT      hstmt;
+   HENV henv;                     /* copy for speed */
+   HDBC hdbc;                     /* copy for speed */
+   HSTMT hstmt;
 
-    int        done_desc;	/* have we described this sth yet ?	*/
+   int done_desc;                 /* have we described this sth yet ? */
 
-    /* Input Details	*/
-    char      *statement;	/* sql (see sth_scan)		*/
-    HV        *all_params_hv;   /* all params, keyed by name    */
-    AV        *out_params_av;   /* quick access to inout params */
-    int     has_inout_params;
+   /* Input Details */
+   char *statement;               /* sql (see sth_scan) */
+   HV *all_params_hv;             /* all params, keyed by name    */
+   AV *out_params_av;             /* quick access to inout params */
+   int has_inout_params;
 
-    UCHAR    *ColNames;		/* holds all column names; is referenced
-				 * by ptrs from within the fbh structures
-				 */
-    UCHAR    *RowBuffer;	/* holds row data; referenced from fbh */
-    imp_fbh_t *fbh;		/* array of imp_fbh_t structs	*/
+   UCHAR *ColNames;               /* holds all column names; is referenced
+                                     by ptrs from within the fbh structures */
+   UCHAR *RowBuffer;              /* holds row data; referenced from fbh */
+   imp_fbh_t *fbh;                /* array of imp_fbh_t structs */
 
-    SDWORD   RowCount;		/* Rows affected by insert, update, delete
-				 * (unreliable for SELECT)
-				 */
-    int eod;			/* End of data seen */
-    SV	*param_sts;			/* ref to param status array for array bound PHs */
-    int params_procd;			/* to recv number of parms processed by an SQLExecute() */
-    UWORD *param_status;		/* row indicators for array binding */
-    SV	*row_sts;			/* ref to row status array for array bound columns */
-    UDWORD rows_fetched;		/* actual number of rows fetched for array binding */
-    UDWORD max_rows;			/* max number of rows per fetch for array binding */
-    UWORD *row_status;			/* row indicators for array binding */
-    int  ttIgnoreNamedPlaceholders;	/* flag to ignore named parameters */
-    int  ttDefaultBindType;	/* flag to set default binding type (experimental) */
-    int  ttExecDirect;		/* flag for executing SQLExecDirect instead of SQLPrepare and SQLExecute.  Magic happens at SQLExecute() */
-    int ttQueryTimeout;
+   SDWORD RowCount;               /* Rows affected by insert, update, delete */
+   int eod;                       /* End of data seen */
+   int ttIgnoreNamedPlaceholders; /* flag to ignore named parameters */
+   int ttDefaultBindType;         /* flag to set default binding type */
+   int ttExecDirect;              /* flag for executing SQLExecDirect
+                                     instead of SQLPrepare and SQLExecute.
+                                     Magic happens at SQLExecute() */
+   int ttQueryTimeout;
 };
-#define IMP_STH_EXECUTING	0x0001
 
+/* Field buffer structure */
+struct imp_fbh_st
+{
+   imp_sth_t *imp_sth;    /* 'parent' statement */
 
-struct imp_fbh_st { 	/* field buffer EXPERIMENTAL */
-   char szDummyBuffer[1024];
-   imp_sth_t *imp_sth;	/* 'parent' statement */
-    /* field description - SQLDescribeCol() */
-    UCHAR *ColName;		/* zero-terminated column name */
-    SWORD ColNameLen;
-    UDWORD ColDef;		/* precision */
-    SWORD ColScale;
-    SWORD ColSqlType;
-    SWORD ColNullable;
-    SDWORD ColLength;		/* SqlColAttributes(SQL_COLUMN_LENGTH) */
-    SDWORD ColDisplaySize;	/* SqlColAttributes(SQL_COLUMN_DISPLAY_SIZE) */
+   /* field description - SQLDescribeCol() */
+   UCHAR *ColName;        /* zero-terminated column name */
+   SWORD ColNameLen;
+   UDWORD ColDef;         /* precision */
+   SWORD ColScale;
+   SWORD ColSqlType;
+   SWORD ColNullable;
+   SDWORD ColLength;      /* SqlColAttributes(SQL_COLUMN_LENGTH) */
+   SDWORD ColDisplaySize; /* SqlColAttributes(SQL_COLUMN_DISPLAY_SIZE) */
 
-    /* Our storage space for the field data as it's fetched	*/
-    SWORD ftype;		/* external datatype we wish to get.
-				 * Used as parameter to SQLBindCol().
-				 */
-    UCHAR *data;		/* points into sth->RowBuffer */
-    SDWORD datalen;		/* length returned from fetch for single row. */
-    UDWORD maxcnt;		/* max num of rows to return per fetch */
-    SV *colary;			/* ref to array to recv output data */
-    SDWORD *col_indics;	/* individual column length/NULL indicators for array binding */
-    int is_array;		/* TRUE => bound to array */
+   /* Our storage space for the field data as it's fetched */
+   SWORD ftype;           /* external datatype we wish to get.
+                             Used as parameter to SQLBindCol(). */
+   UCHAR *data;           /* points into sth->RowBuffer */
+   SDWORD datalen;        /* length returned from fetch for single row. */
 };
 
 
 typedef struct phs_st phs_t;    /* scalar placeholder   */
 
-struct phs_st {  	/* scalar placeholder EXPERIMENTAL	*/
-    int idx;		/* index number of this param 1, 2, ...	*/
+/* Placeholder structure */
+struct phs_st
+{
+   int idx;                /* Parameter index */
+   SV *sv;                 /* Scalar holding the value */
+   int sv_type;            /* SvTYPE at bind */
+   char *sv_buf;           /* Pointer to SV's buffer */
 
-    SV  *sv;            /* the scalar holding the value         */
-    int sv_type;        /* original sv type at time of bind     */
-    int biggestparam;    /* if sv_type is VARCHAR, size of biggest so far */
-    int scale;
-    bool is_inout;
-    IV  maxlen;         /* max possible len (=allocated buffer) */
-    char *sv_buf;	/* pointer to sv's data buffer		*/
-    int alen_incnull;
+   bool is_inout;
+   IV  maxlen;             /* max possible len (=allocated buffer) */
 
-    SWORD ftype;			/* external field type	       */
-    SWORD sql_type;			/* the sql type the placeholder should have in SQL	*/
-    SWORD tgt_sql_type;			/* the PH SQL type the stmt expects     */
-    SDWORD tgt_len;			/* size or precision the stmt expects */
-    SDWORD cbValue;			/* length of returned value OR SQL_NULL_DATA */
-    SDWORD *indics;			/* ptr to indicator array for param arrays */
-    int is_array;			/* TRUE => parameter array */
+   SQLSMALLINT fSqlType;   /* SQL data type */
+   SQLULEN     cbColDef;   /* Column precision (char/numeric length) */
+   SQLSMALLINT ibScale;    /* Column scale (numeric length after decimal) */
+   SQLSMALLINT fNullable;  /* Nullable column */
+   SQLSMALLINT fCType;     /* C data type */
+   SQLLEN      cbValue;    /* Data length */
 
-    char name[1];			/* struct is malloc'd bigger as needed	*/
+   char name[1];           /* struct is malloc'd bigger as needed */
 };
 
 
@@ -156,6 +147,7 @@ struct phs_st {  	/* scalar placeholder EXPERIMENTAL	*/
 #define dbd_st_prepare		timesten_st_prepare
 #define dbd_st_rows		timesten_st_rows
 #define dbd_st_execute		timesten_st_execute
+#define dbd_st_execute_array	timesten_st_execute_array
 #define dbd_st_fetch		timesten_st_fetch
 #define dbd_st_finish		timesten_st_finish
 #define dbd_st_destroy		timesten_st_destroy

@@ -1,12 +1,12 @@
 #!perl -w
-# $Id: 10general.t 546 2006-11-26 17:51:19Z wagnerch $
+# $Id: 10general.t 550 2006-11-28 00:35:09Z wagnerch $
 
 use Test::More;
 use DBI;
 unshift @INC, 't';
 
 $| = 1;
-plan tests => 32;
+plan tests => 33;
 
 
 my ($sth, $tmp);
@@ -33,7 +33,7 @@ $dbh->{PrintError} = 1;
 $dbh->do("
    CREATE TABLE dbd_timesten_general_test (
        tcol1 INTEGER NOT NULL
-      ,tcol2 VARCHAR(100) NOT NULL
+      ,tcol2 VARCHAR(100)
    )
 ", undef);
 ok(!$DBI::err, 'create table ok');
@@ -52,11 +52,6 @@ ok($DBI::err, 'invalid statement ok');
 $dbh->{RaiseError} = 0;
 
 
-## Test ping
-ok($dbh->ping, 'ping ok');
-ok(!$DBI::err, 'ping error ok');
-
-
 ## Check active state
 $sth = $dbh->prepare("select * from tables");
 ok($sth->execute, 'execute ok');
@@ -72,6 +67,7 @@ my (@test_data) = (
    ,[ 2, 'u390jhy09ejd' ]
    ,[ 3, 'jw908hg30ggd' ]
    ,[ 4, '098ghu20ygfc' ]
+   ,[ 5, undef ]
 );
 
 foreach $data (@test_data)
@@ -97,7 +93,6 @@ ok(!$DBI::err, 'bind_col 2 ok');
 $i=0;
 while ($sth->fetch())
 {
-   ok(defined $tcol1 && defined $tcol2, 'binded column fetch ok');
    cmp_ok($tcol1, 'eq', $test_data[$i]->[0], 'column 1 compare ok');
    cmp_ok($tcol2, 'eq', $test_data[$i]->[1], 'column 2 compare ok');
    $i++;
@@ -108,6 +103,12 @@ $sth->finish();
 $dbh->do("DROP TABLE dbd_timesten_general_test");
 ok(!$DBI::err, 'drop table ok');
 
+
+## Test ping
+ok($dbh->{Active}, 'active ok');
+ok($dbh->ping, 'ping ok');
 ok($dbh->disconnect(), 'disconnect ok');
+ok(!$dbh->{Active}, 'not active ok');
+ok(!$dbh->ping, 'no ping ok');
 
 exit 0;

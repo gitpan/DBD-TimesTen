@@ -1,4 +1,4 @@
-\b\.svn\b
+\.svn\b
 ^MANIFEST\.
 ^Makefile$
 ~$

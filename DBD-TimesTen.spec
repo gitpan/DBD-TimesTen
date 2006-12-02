@@ -8,9 +8,8 @@
 
 name:      perl-DBD-TimesTen
 summary:   DBD-TimesTen - TimesTen database driver for the DBI module
-version:   0.04
+version:   0.05
 release:   1
-#vendor:    
 packager:  Chad Wagner <chad.wagner@gmail.com>
 license:   GPL
 group:     Applications/CPAN
@@ -105,5 +104,8 @@ find %{buildroot}%{_prefix}             \
 %defattr(-,root,root)
 
 %changelog
+* Sun Nov 26 2006 Chad Wagner <chad.wagner@gmail.com> - 0.05-1
+- Bumped to version 0.05.
+
 * Sun Nov 26 2006 Chad Wagner <chad.wagner@gmail.com> - 0.04-1
 - Initial build.

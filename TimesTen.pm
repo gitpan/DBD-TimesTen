@@ -1,4 +1,4 @@
-# $Id: TimesTen.pm 544 2006-11-26 15:47:54Z wagnerch $
+# $Id: TimesTen.pm 555 2006-11-30 23:42:45Z wagnerch $
 #
 # Copyright (c) 1994,1995,1996,1998  Tim Bunce
 # portions Copyright (c) 1997-2004  Jeff Urlwin
@@ -10,7 +10,7 @@
 
 require 5.004;
 
-$DBD::TimesTen::VERSION = '0.04';
+$DBD::TimesTen::VERSION = '0.05';
 
 {
     package DBD::TimesTen;
@@ -129,9 +129,6 @@ $DBD::TimesTen::VERSION = '0.04';
 	    'CURRENT_USER' => $user,
 	    });
 
-	# Call ODBC logon func in ODBC.xs file
-	# and populate internal handle data.
-
 	DBD::TimesTen::db::_login($this, $dbname, $user, $auth, $attr) or return undef;
 
 	$this;
@@ -146,14 +143,10 @@ $DBD::TimesTen::VERSION = '0.04';
     sub prepare {
 	my($dbh, $statement, @attribs)= @_;
 
-	# create a 'blank' dbh
+	# create a "blank" statement handle
 	my $sth = DBI::_new_sth($dbh, {
 	    'Statement' => $statement,
 	    });
-
-	# Call ODBC func in ODBC.xs file.
-	# (This will actually also call SQLPrepare for you.)
-	# and populate internal handle data.
 
 	DBD::TimesTen::st::_prepare($sth, $statement, @attribs)
 	    or return undef;
@@ -305,6 +298,45 @@ $DBD::TimesTen::VERSION = '0.04';
 	my $sth = shift;
 	my $tmp = DBD::TimesTen::st::_cancel($sth);
 	$tmp;
+    }
+
+    sub execute_for_fetch {
+       my ($sth, $fetch_tuple_sub, $tuple_status) = @_;
+       my $row_count = 0;
+       my $tuple_count=0;
+       my $tuple_batch_status;
+       my $dbh = $sth->{Database};
+       my $batch_size = ($dbh->{'tt_array_chunk_size'}||= 1000);
+
+       if(defined($tuple_status)) {
+           @$tuple_status = ();
+           $tuple_batch_status = [ ];
+       }
+
+       while (1) {
+           my @tuple_batch;
+           for (my $i = 0; $i < $batch_size; $i++) {
+                push @tuple_batch, [ @{$fetch_tuple_sub->() || last} ];
+           }
+           last unless @tuple_batch;
+           my $res = _execute_array($sth,
+                                    \@tuple_batch,
+                                    scalar(@tuple_batch),
+                                    $tuple_batch_status);
+           if(defined($res) && defined($row_count)) {
+                $row_count += $res;
+           } else {
+                $row_count = undef;
+           }
+           $tuple_count+=@$tuple_batch_status;
+           push @$tuple_status, @$tuple_batch_status
+           if defined($tuple_status);
+       }
+       if (!wantarray) {
+           return undef if !defined $row_count;
+           return $tuple_count;
+       }
+       return (defined $row_count ? $tuple_count : undef, $row_count);
     }
 }
 
