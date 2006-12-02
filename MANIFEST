@@ -13,8 +13,11 @@ DBD-TimesTen.spec
 t/01base.t
 t/10general.t
 t/20date.t
+t/21long.t
+t/22numeric.t
 t/30commit.t
 t/31isolation.t
 t/40meta.t
 t/50unicode.t
+t/60array.t
 META.yml                                 Module meta-data (added by MakeMaker)

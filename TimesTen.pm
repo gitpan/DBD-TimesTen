@@ -1,4 +1,4 @@
-# $Id: TimesTen.pm 555 2006-11-30 23:42:45Z wagnerch $
+# $Id: TimesTen.pm 568 2006-12-02 01:31:48Z wagnerch $
 #
 # Copyright (c) 1994,1995,1996,1998  Tim Bunce
 # portions Copyright (c) 1997-2004  Jeff Urlwin
@@ -10,7 +10,7 @@
 
 require 5.004;
 
-$DBD::TimesTen::VERSION = '0.05';
+$DBD::TimesTen::VERSION = '0.06';
 
 {
     package DBD::TimesTen;

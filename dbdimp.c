@@ -1,4 +1,4 @@
-/* $Id: dbdimp.c 565 2006-12-02 01:20:45Z wagnerch $
+/* $Id: dbdimp.c 572 2006-12-02 04:37:01Z wagnerch $
  * 
  * portions Copyright (c) 1994,1995,1996,1997  Tim Bunce
  * portions Copyright (c) 1997 Thomas K. Wenrich
@@ -2999,8 +2999,7 @@ dbd_st_execute_array(sth, imp_sth, tuples, tuples_status, columns, exe_count)
       }
       tuples_status_av = (AV*)SvRV(tuples_status);
       av_fill(tuples_status_av, exe_count - 1);
-      /* Fill in 'unknown' exe count in every element (know not how to get
-         individual execute row counts from OCI). */
+      /* Fill in 'unknown' exe count in every element. */
       for(i = 0; (unsigned int) i < exe_count; i++)
       {
           av_store(tuples_status_av, i, newSViv((IV)-1));
@@ -3015,6 +3014,8 @@ dbd_st_execute_array(sth, imp_sth, tuples, tuples_status, columns, exe_count)
    if(exe_count <= 0)
      return 0;
 
+   /* Allocate memory for param_count columns.  Later on we will allocate
+      memory for the rows. */
    param_count = DBIc_NUM_PARAMS(imp_sth);
    phs = safemalloc (param_count * sizeof(*phs));
    memset (phs, 0, param_count * sizeof(*phs));
@@ -3024,89 +3025,144 @@ dbd_st_execute_array(sth, imp_sth, tuples, tuples_status, columns, exe_count)
    values_len = safemalloc (param_count * sizeof (SQLLEN *));
    memset (values_len, 0, param_count * sizeof (SQLLEN *));
 
+#define dbd_st_execute_array_free \
+		Safefree (phs); \
+		for (i = 0; i < param_count; i++) \
+		{ \
+		  if (values[i]) Safefree (values[i]); \
+		  if (values_len[i]) Safefree (values_len[i]); \
+		} \
+		Safefree (values); \
+		Safefree (values_len);
+
    for (i = 0; i < param_count; i++)
    {
       SV **phs_svp;
 
+      /* Let's try and fetch the placeholder structure from the
+         all_params_hv hash.  We assume here that the parameters are
+         numeric.  If you look at dbd_st_prepare we will store them
+         in the hash with the number. */
       sprintf(namebuf, "%d", i+1);
       phs_svp = hv_fetch(imp_sth->all_params_hv, namebuf, strlen(namebuf), 0);
       if (phs_svp == NULL)
       {
-         dbd_error(sth, rc, "Can't execute for non-existent placeholder.");
-         goto dbd_st_execute_array_err;
+         dbd_st_execute_array_free;
+         croak("Can't execute for non-existent placeholder :%d", i);
       }
 
-      phs[i] = (phs_t*)(void*)SvPVX(*phs_svp); /* placeholder struct */
+      /* Dereference the placeholder structure */
+      phs[i] = (phs_t*)(void*)SvPVX(*phs_svp);
       if(phs[i]->idx < 0)
       {
-         dbd_error(sth, rc, "Placeholder not of ?/:1 type.");
-         goto dbd_st_execute_array_err;
+         dbd_st_execute_array_free;
+         croak("Placeholder %d not of ?/:1 type", i);
       }
 
+      /* Describe the placeholder parameters */
       if (!dbd_st_describe_param (sth, phs[i]))
       {
-         goto dbd_st_execute_array_err;
+         dbd_st_execute_array_free;
+         return -2;
       }
 
-      phs[i]->cbValue = phs[i]->cbColDef;
+      /* Start out with an assumption that cbMaxValue will be atleast
+         the precision of the column that we described. */
       phs[i]->maxlen = phs[i]->cbColDef;
 
-      values[i] = safemalloc (exe_count * phs[i]->maxlen * sizeof (char));
-      memset (values[i], 0, exe_count * phs[i]->maxlen * sizeof (char));
-      values_len[i] = safemalloc (exe_count * sizeof (SQLLEN));
-      memset (values_len[i], 0, exe_count * sizeof (SQLLEN));
-
-      for(j = 0; j < exe_count; j++)
+      /* First pass is to determine cbMaxValue, check the length of
+         every row passed in to find the greatest value for cbMaxValue. */
+      for (j = 0; j < exe_count; j++)
       {
-         sv_p = av_fetch(tuples_av, j, 0);
+         /* Outer is the row */
+         sv_p = av_fetch (tuples_av, j, 0);
          if(sv_p == NULL)
          {
-            dbd_error(sth, rc, "Can't fetch tuple.");
-            goto dbd_st_execute_array_err;
+            dbd_st_execute_array_free;
+            croak("Cannot fetch tuple %d", j);
          }
 
          sv = *sv_p;
          if(!SvROK(sv) || SvTYPE(SvRV(sv)) != SVt_PVAV)
          {
-            dbd_error(sth, rc, "Not an array reference.");
-            goto dbd_st_execute_array_err;
+            dbd_st_execute_array_free;
+            croak("Not an array ref in element %d", j);
          }
 
          av = (AV*)SvRV(sv);
 
+         /* Inner is the column */
          sv_p = av_fetch(av, phs[i]->idx - 1, 0);
          if(sv_p == NULL)
          {
-            dbd_error(sth, rc, "Can't fetch value.");
-            goto dbd_st_execute_array_err;
+            dbd_st_execute_array_free;
+            croak("Cannot fetch value for param %d in entry %d", i, j);
          }
 
-         //check to see if value sv is a null (undef) if it is upgrade it
          sv = *sv_p;
 
          /* Check if it is a reference */
          if (SvROK(sv))
          {
-            dbd_error(sth, rc, "Can't bind reference.");
-            goto dbd_st_execute_array_err;
+            dbd_st_execute_array_free;
+            croak("Can't bind a reference (%s) for param %d, entry %d"
+               ,neatsvpv(sv,0), i, j);
          }
          else
          {
-            if (!SvOK(sv))
+            /* Ok, it is good.  Let's grab then length and see if it is
+               larger then our current cbMaxValue. */
+            if (SvOK(sv))
             {
-               /* Must be null data, no need to null it out as we already
-                  memset'd the entire structure earlier. */
-               values_len[i][j] = SQL_NULL_DATA;
-            }
-            else
-            {
-               char *p = SvPV (sv, len);
+               SvPV (sv, len);
 
-               memcpy ((values[i] + (j * phs[i]->maxlen))
-                      ,p
-                      ,len);
-               values_len[i][j] = len;
+               if (len > phs[i]->maxlen)
+                  phs[i]->maxlen = len;
             }
+         }
+      }
+
+      /* Allocate the "blob" of memory for our bulk insert. */
+      values[i] = safemalloc (exe_count * phs[i]->maxlen * sizeof (char));
+      memset (values[i], 0, exe_count * phs[i]->maxlen * sizeof (char));
+      values_len[i] = safemalloc (exe_count * sizeof (SQLLEN));
+      memset (values_len[i], 0, exe_count * sizeof (SQLLEN));
+
+      /* Second pass is to map the scalars into the "blob". */
+      for(j = 0; j < exe_count; j++)
+      {
+         /* Fetch row in outer array. */
+         sv_p = av_fetch(tuples_av, j, 0);
+         sv = *sv_p;
+         av = (AV*)SvRV(sv);
+
+         /* Fetch column in inner array */
+         sv_p = av_fetch(av, phs[i]->idx - 1, 0);
+
+         //check to see if value sv is a null (undef) if it is upgrade it
+         sv = *sv_p;
+
+         /* If it is not a valid scalar, assume it is null */
+         if (!SvOK(sv))
+         {
+            /* Must be null data, no need to null it out as we already
+               memset'd the entire structure earlier. */
+            values_len[i][j] = SQL_NULL_DATA;
+         }
+         else
+         {
+            /* Copy the memory from the scalar into the "blob", below
+               we need to ensure we are offset into the right place in
+               memory.
+
+               offset = base + (row * cbMaxValue)
+            */
+            char *p = SvPV (sv, len);
+
+            memcpy ((values[i] + (j * phs[i]->maxlen))
+                   ,p
+                   ,len);
+            values_len[i][j] = len;
          }
       }
 
@@ -3118,6 +3174,7 @@ dbd_st_execute_array(sth, imp_sth, tuples, tuples_status, columns, exe_count)
             phs[i]->idx, phs[i]->fCType, phs[i]->fSqlType, phs[i]->maxlen,
             phs[i]->cbColDef, phs[i]->ibScale);
 
+      /* Bind in the memory "blob". */
       rc = SQLBindParameter(imp_sth->hstmt
                            ,phs[i]->idx
                            ,SQL_PARAM_INPUT
@@ -3131,55 +3188,44 @@ dbd_st_execute_array(sth, imp_sth, tuples, tuples_status, columns, exe_count)
 
       if (!SQL_ok(rc))
       {
+         dbd_st_execute_array_free;
          dbd_error(sth, rc, "dbd_st_execute_array/SQLBindParameter");
-         goto dbd_st_execute_array_err;
+         return -2;
       }
    }
 
+   /* Set the number of rows for the bulk operation. */
    rc = SQLParamOptions(imp_sth->hstmt, exe_count, &current_row);
    if (!SQL_ok(rc))
    {
+      dbd_st_execute_array_free;
       dbd_error(sth, rc, "dbd_st_execute_array/SQLParamOptions");
-      goto dbd_st_execute_array_err;
+      return -2;
    }
 
+   /* Execute the operation. */
    rc = SQLExecute(imp_sth->hstmt);
 
    if (!SQL_ok(rc))
    {
+      dbd_st_execute_array_free;
       dbd_error(sth, rc, "dbd_st_execute_array/SQLExecute");
-      goto dbd_st_execute_array_err;
+      return -2;
    }
 
+   /* Fetch the rows affected count. */
    SQLINTEGER row_count = 0;
    rc = SQLRowCount(imp_sth->hstmt, &row_count);
    if (!SQL_ok(rc))
    {
+      dbd_st_execute_array_free;
       dbd_error(sth, rc, "dbd_st_execute_array/SQLRowCount");
-      goto dbd_st_execute_array_err;
+      return -2;
    }
 
-   for (i = 0; i < param_count; i++)
-   {
-      Safefree (values[i]);
-      Safefree (values_len[i]);
-   }
-   Safefree (values);
-   Safefree (values_len);
-   Safefree (phs);
-
+   /* Free the memory, return the row count. */
+   dbd_st_execute_array_free;
    return row_count;
-
-dbd_st_execute_array_err:
-   for (i = 0; i < param_count; i++)
-   {
-      Safefree (values[i]);
-      Safefree (values_len[i]);
-   }
-   Safefree (values);
-   Safefree (values_len);
-   Safefree (phs);
-
-   return -2;
+#undef dbd_st_execute_array_free
 }
 /* end */

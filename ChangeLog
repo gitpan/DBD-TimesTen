@@ -1,3 +1,33 @@
+2006-12-02 [r573]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Release of version 0.06
+
+2006-12-02 [r572]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Added comments to the dbd_st_execute_array code.
+
+2006-12-02 [r571]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Added rpm and srpm target to build packages.
+
+2006-12-02 [r570]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Updated 60array.t test cases, testing similar limits that are
+	  done in 22numeric.t
+
+2006-12-02 [r569]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Modified the execute_array procedure to pre-scan the rows in a
+	  column to determine the proper cbValueMax.
+
+2006-12-02 [r568]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Bumped version number to 0.06 for future release.
+
+2006-12-02 [r567]  Chad Wagner <chad.wagner@gmail.com>
+
+	* Updated MANIFEST to include 60array.t, 21long.t, and 22numeric.t
+
 2006-12-02 [r566]  Chad Wagner <chad.wagner@gmail.com>
 
 	* Release of version 0.05

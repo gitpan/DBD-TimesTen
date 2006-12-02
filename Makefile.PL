@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# $Id: Makefile.PL 526 2006-11-25 17:34:51Z wagnerch $
+# $Id: Makefile.PL 571 2006-12-02 03:45:24Z wagnerch $
 #
 # You may distribute under the terms of either the GNU General Public
 # License or the Artistic License, as specified in the Perl README file.
@@ -130,6 +130,15 @@ $rv;
       return shift->SUPER::dist_basics(@_) . '
 svnlog :
 	svn log -v --xml svn://localhost/repos/dbd-timesten/ |$(SVN2LOG)/svn2log.py -D 0 -s -O -L -H -F -u "$(SVN2LOG)/svn2log.users" -x "dbd-timesten/branches/"
+
+RPMBUILD = rpmbuild --define "_sourcedir $(shell pwd)" --define "_builddir $(shell pwd)/build" --define "_srcrpmdir $(shell pwd)" --define "_rpmdir $(shell pwd)" 
+SPECFILE = DBD-TimesTen.spec
+
+srpm : $(DIST_DEFAULT) $(FIRST_MAKEFILE)
+	$(RPMBUILD) -bs $(SPECFILE)
+
+rpm : $(DIST_DEFAULT) $(FIRST_MAKEFILE)
+	mkdir $(shell pwd)/build && $(RPMBUILD) -bb $(SPECFILE) && rm -fR $(shell pwd)/build
 ';
    }
 }
